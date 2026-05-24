@@ -1,0 +1,15 @@
+{
+  "mode": "Current Official Mode",
+  "scenario": "CURRENT_NORMAL",
+  "timestamp": "2026-05-21T00:00:00+10:00",
+  "location": "Maribyrnong",
+  "officialWarningLevel": "No active warning",
+  "rainfallTrend": "normal",
+  "riverTrend": "stable",
+  "dataStatus": "current",
+  "source": "VicEmergency public events GeoJSON; SES; Maribyrnong Council; Melbourne Water; BOM",
+  "sourceUrl": "https://emergency.vic.gov.au/public/events-geojson.json",
+  "recommendedAction": "Stay prepared and review your flood plan.",
+  "isRealCurrentWarning": true,
+  "provenanceNote": "Current Official Mode uses public official source references and public endpoint checks where available; it does not represent approved formal VicEmergency data-feed access."
+}

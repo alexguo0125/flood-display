@@ -1,0 +1,86 @@
+{
+  "reviewedAt": "2026-05-21",
+  "targetArea": "Maribyrnong, Victoria",
+  "sources": [
+    {
+      "name": "Australian Warning System",
+      "url": "https://www.australianwarningsystem.com.au/",
+      "type": "official-warning-framework",
+      "status": "reference-only",
+      "pipelineUse": "Defines Advice, Watch and Act, and Emergency Warning scenario levels.",
+      "notes": "Used by the rule engine labels and historical scenario structure."
+    },
+    {
+      "name": "VicEmergency",
+      "url": "https://emergency.vic.gov.au/",
+      "type": "official-webpage",
+      "status": "reference-only",
+      "pipelineUse": "Primary official public emergency information reference.",
+      "notes": "Used as a public source reference; formal data-feed access requires approval."
+    },
+    {
+      "name": "VicEmergency public events GeoJSON",
+      "url": "https://emergency.vic.gov.au/public/events-geojson.json",
+      "type": "public-json",
+      "status": "usable-now",
+      "pipelineUse": "Public current incident/warning feed checked by the backend for Current Official Mode.",
+      "notes": "Public endpoint responds as GeoJSON; proof-of-concept use only."
+    },
+    {
+      "name": "VicEmergency impact areas GeoJSON",
+      "url": "https://emergency.vic.gov.au/public/impact-areas-geojson.json",
+      "type": "public-json",
+      "status": "usable-later",
+      "pipelineUse": "Future affected-area polygon matching.",
+      "notes": "Not currently used to choose the display state."
+    },
+    {
+      "name": "VICSES Maribyrnong City Council flood guide",
+      "url": "https://www.ses.vic.gov.au/plan-and-stay-safe/flood-guides/maribyrnong-city-council",
+      "type": "official-webpage",
+      "status": "reference-only",
+      "pipelineUse": "Preparedness actions and local flood guide context.",
+      "notes": "Official guidance page, not a live API."
+    },
+    {
+      "name": "Maribyrnong Council River Watch",
+      "url": "https://www.maribyrnong.vic.gov.au/Residents/Emergency-Management/River-Watch-Riverine-Flooding-and-Information",
+      "type": "official-webpage",
+      "status": "reference-only",
+      "pipelineUse": "Local council flood information and resident support context.",
+      "notes": "Official local council page, not a live API."
+    },
+    {
+      "name": "Melbourne Water Maribyrnong River flood model/maps",
+      "url": "https://letstalk.melbournewater.com.au/maribyrnong-river-flood-model/maribyrnong-river-flood-model-maps",
+      "type": "official-map-resource",
+      "status": "reference-only",
+      "pipelineUse": "Historical scenario context for Maribyrnong River flood extent/risk.",
+      "notes": "Map/model reference, not a simple live API."
+    },
+    {
+      "name": "Melbourne Water rainfall and river levels",
+      "url": "https://www.melbournewater.com.au/water-and-environment/water-management/rainfall-and-river-levels",
+      "type": "interactive-data",
+      "status": "manual-download-or-request",
+      "pipelineUse": "Future rainfall and river-level enrichment.",
+      "notes": "Interactive app and CSV download source; not a simple public JSON API."
+    },
+    {
+      "name": "BOM Water Data Online",
+      "url": "https://www.bom.gov.au/waterdata/",
+      "type": "public-data-service",
+      "status": "usable-with-limits",
+      "pipelineUse": "Future station-level water/rainfall data reference.",
+      "notes": "Public service; API use requires careful WaterML/SOS handling and rate-limit awareness."
+    },
+    {
+      "name": "Victorian Ombudsman Maribyrnong/Rivervue flood-risk report",
+      "url": "https://www.ombudsman.vic.gov.au/our-impact/investigation-reports/when-the-water-rises-flood-risk-at-two-housing-estates/",
+      "type": "public-report",
+      "status": "reference-only",
+      "pipelineUse": "Historical context for October 2022 Maribyrnong River flood and Rivervue impacts.",
+      "notes": "Public accountability report, not a live warning source."
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "Flood Display",
+  "short_name": "Flood Display",
+  "description": "E-ink household flood warning display",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ececea",
+  "theme_color": "#1a1814",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": [
+    "utilities"
+  ],
+  "lang": "en"
+}

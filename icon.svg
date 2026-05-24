@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <!-- Dark device background -->
+  <rect width="192" height="192" rx="24" fill="#1c1a18"/>
+  <!-- Flood warning triangle -->
+  <polygon points="96,28 18,162 174,162"
+           fill="none" stroke="#edeae0" stroke-width="9" stroke-linejoin="miter"/>
+  <!-- Wave line 1 -->
+  <path d="M46,118 Q58,108 70,118 Q82,128 94,118 Q106,108 118,118 Q130,128 142,118"
+        fill="none" stroke="#edeae0" stroke-width="6" stroke-linecap="round"/>
+  <!-- Wave line 2 -->
+  <path d="M34,140 Q48,130 62,140 Q76,150 90,140 Q104,130 118,140 Q132,150 146,140 Q160,130 158,140"
+        fill="none" stroke="#edeae0" stroke-width="6" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1814">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Flood Display">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <title>Flood Display</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Fridge environment overlays (purely decorative) -->
+  <div class="fridge-top-shadow" aria-hidden="true"></div>
+  <div class="fridge-bottom-shadow" aria-hidden="true"></div>
+  <div class="fridge-seam" aria-hidden="true"></div>
+
+  <!-- Mobile/PWA controls drawer backdrop -->
+  <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+
+  <div class="app-layout">
+
+    <!-- ─── E-ink device ─────────────────────────────────── -->
+    <main class="device-area" id="deviceArea">
+      <div class="device-scale-wrapper" id="deviceScaleWrapper">
+        <div class="device-outer" id="deviceOuter">
+
+          <!-- Corner mounting screws -->
+          <div class="screw tl" aria-hidden="true"></div>
+          <div class="screw tr" aria-hidden="true"></div>
+          <div class="screw bl" aria-hidden="true"></div>
+          <div class="screw br" aria-hidden="true"></div>
+
+          <div class="screen-rim">
+            <div class="screen" id="screen">
+
+              <!-- Header -->
+              <header class="screen-header" id="screenHeader">
+                <span class="hdr-title" id="hdrTitle">FLOOD  DISPLAY</span>
+                <div class="hdr-right">
+                  <svg class="batt-svg" id="battSvg" viewBox="0 0 36 16" xmlns="http://www.w3.org/2000/svg" aria-label="Battery">
+                    <rect x="1.5" y="2.5" width="27" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                    <rect x="28.5" y="5.5" width="5" height="5" rx="1" fill="currentColor"/>
+                    <rect id="battFill" x="3" y="4" width="23" height="8" rx="1" fill="currentColor"/>
+                  </svg>
+                  <span class="signal" aria-label="Signal strength">▁▃▅▇</span>
+                  <span class="clock" id="clock">–:– –M</span>
+                  <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open demo controls" aria-controls="demoPanel" aria-expanded="false">☰</button>
+                </div>
+              </header>
+              <div class="hdr-line" id="hdrLine"></div>
+
+              <!-- Main body -->
+              <div class="screen-body" id="screenBody">
+
+                <div class="connection-banner" id="connectionBanner" hidden>
+                  <span class="connection-title" id="connectionTitle">CONNECTION LOST</span>
+                  <span id="connectionText">Showing last known warning</span>
+                  <span id="connectionUpdated">Updated: --:--</span>
+                  <span id="connectionInstruction">Follow the last instruction.</span>
+                </div>
+
+                <!-- Main Alert -->
+                <section class="alert-card" aria-label="Main alert">
+                  <div class="alert-top">
+                    <svg class="flood-icon" id="floodSvg" viewBox="0 0 92 82" xmlns="http://www.w3.org/2000/svg" aria-label="Flood warning">
+                      <polygon id="iconPoly" points="46,4 4,78 88,78" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="miter"/>
+                      <path id="iconWave1" fill="none" stroke="currentColor" stroke-width="2.2"/>
+                      <path id="iconWave2" fill="none" stroke="currentColor" stroke-width="2.2"/>
+                    </svg>
+                    <div class="alert-copy">
+                      <div class="section-lbl" id="mainAlertLbl">Main Alert</div>
+                      <div class="warning-type" id="warningType">FLOOD WATCH</div>
+                      <div class="risk-row" id="riskRow">
+                        <span class="risk-pre" id="riskPre">Risk:</span>
+                        <div class="risk-box" id="riskBox">
+                          <span class="risk-val" id="riskVal">MEDIUM</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="primary-action" id="primaryAction">PREPARE TO LEAVE</div>
+                </section>
+
+                <div class="info-grid">
+                  <!-- Happening -->
+                  <section class="info-section happening-section">
+                    <div class="section-lbl" id="hapLbl">WHAT IS HAPPENING</div>
+                    <div class="section-txt" id="hapTxt"></div>
+                  </section>
+
+                  <!-- Actions -->
+                  <section class="info-section action-section">
+                    <div class="section-lbl" id="actLbl">DO NOW</div>
+                    <div class="act-list" id="actList"></div>
+                  </section>
+
+                  <!-- Safe route -->
+                  <section class="info-section route-section">
+                    <div class="section-lbl" id="routeLbl">SAFE ROUTE</div>
+                    <div class="route-diagram" id="routeDiagram"></div>
+                    <div class="route-note" id="routeNote"></div>
+                  </section>
+                </div>
+
+                <!-- Help -->
+                <section class="help-section" aria-label="Help">
+                  <span class="section-lbl" id="helpLbl">HELP</span>
+                  <span class="help-list" id="helpList"></span>
+                </section>
+
+                <section class="trace-panel" aria-label="Data traceability">
+                  <div class="section-lbl" id="traceTitle">DATA TRACEABILITY</div>
+                  <div class="trace-grid">
+                    <span id="traceLblMode">Mode</span><b id="traceMode">--</b>
+                    <span id="traceLblScenario">Scenario</span><b id="traceScenario">--</b>
+                    <span id="traceLblWarning">Warning</span><b id="traceWarning">--</b>
+                    <span id="traceLblSource">Source</span><b id="traceSource">--</b>
+                    <span id="traceLblUpdated">Updated</span><b id="traceUpdated">--</b>
+                    <span id="traceLblStatus">Status</span><b id="traceStatus">--</b>
+                    <span id="traceLblRule">Rule</span><b id="traceRule">--</b>
+                    <span id="traceLblReal">Real current</span><b id="traceReal">--</b>
+                  </div>
+                  <div class="trace-note" id="traceNote"></div>
+                </section>
+
+              </div><!-- /screen-body -->
+
+              <!-- Full-screen overlay for battery/connection states -->
+              <div class="ov" id="overlay" hidden>
+                <div class="ov-body" id="ovBody"></div>
+                <!-- Overlay keeps night mode + lang accessible -->
+                <div class="ov-footer" id="ovFooter">
+                  <label class="night-lbl ov-night" id="ovNightLbl">
+                    <input type="checkbox" id="ovNightChk"> <span id="ovNightTxt">Night Mode</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="ftr-line" id="ftrLine"></div>
+              <footer class="screen-footer" id="screenFooter">
+                <div class="footer-meta">
+                  <span id="sourceTxt">Source: VicEmergency / VICSES / Maribyrnong Council</span>
+                  <span id="updatedTxt">Updated: --:--</span>
+                </div>
+                <div class="footer-controls">
+                  <select class="lang-sel" id="langSel" aria-label="Language"></select>
+                  <label class="night-lbl" id="nightLbl">
+                    <input type="checkbox" id="nightChk"> <span id="nightTxt">Night Mode</span>
+                  </label>
+                </div>
+              </footer>
+
+            </div><!-- /screen -->
+          </div><!-- /screen-rim -->
+        </div><!-- /device-outer -->
+      </div><!-- /device-scale-wrapper -->
+    </main>
+
+    <!-- ─── Desktop demo control panel ──────────────────── -->
+    <aside class="demo-panel" id="demoPanel" aria-label="Demo controls">
+      <button class="drawer-close-btn" id="drawerCloseBtn" aria-label="Close demo controls">×</button>
+      <div class="demo-scroll">
+
+        <div class="dp-heading">DEMO CONTROLS</div>
+        <div class="dp-sep"></div>
+
+        <div class="dp-label">Language</div>
+        <select class="dp-sel" id="dpLang" aria-label="Language"></select>
+
+        <div class="dp-sep"></div>
+
+        <div class="dp-label">System Modes</div>
+        <button class="dp-btn" id="btnNormal">Normal Mode</button>
+        <button class="dp-btn" id="btnLowBatt">Low Battery Mode</button>
+        <button class="dp-btn" id="btnConnLost">Connection Lost Mode</button>
+
+        <div class="dp-sep"></div>
+
+        <div class="dp-label">Demo Data Mode</div>
+        <button class="dp-btn" id="btnCurrentOfficial">Current Official Mode</button>
+        <button class="dp-btn risk-btn-low"  id="btnSimLow">Historical Scenario: Ready</button>
+        <button class="dp-btn risk-btn-med"  id="btnSimMed">Historical Scenario: Prepare</button>
+        <button class="dp-btn risk-btn-high" id="btnSimHigh">Historical Scenario: Act Now</button>
+        <button class="dp-btn risk-btn-high" id="btnScenarioLeave">Historical Scenario: Leave Now</button>
+        <button class="dp-btn" id="btnScenarioOffline">Historical Scenario: Connection Lost</button>
+
+        <div class="dp-sep"></div>
+
+        <div class="dp-label">Display Style</div>
+        <label class="dp-night-lbl">
+          <input type="checkbox" id="dpNightChk"> Night Mode
+        </label>
+
+        <div class="dp-sep"></div>
+
+        <!-- ── AI Risk Analysis ──────────────────────────── -->
+        <!-- Calls POST /api/analyse-risk on the Vercel/Node backend. -->
+        <!-- The OpenRouter API key stays server-side and is never exposed here. -->
+        <div class="dp-label">AI Risk Analysis</div>
+        <div class="dp-ai-inputs">
+          <label class="dp-ai-field">River level at Maribyrnong gauge (m)
+            <input type="number" id="aiRiverLevel" value="0.9" step="0.1" min="0" max="12">
+          </label>
+          <label class="dp-ai-field">Rainfall last 24 h (mm)
+            <input type="number" id="aiRainfall" value="4" step="5" min="0" max="250">
+          </label>
+          <label class="dp-ai-field dp-ai-check">
+            <input type="checkbox" id="aiOfficialWarning">
+            Official warning active
+          </label>
+        </div>
+        <button class="dp-btn dp-btn-ai" id="btnFillAI">Fill from current scenario</button>
+        <button class="dp-btn dp-btn-ai dp-btn-ai-run" id="btnAnalyseAI">Analyse Risk with AI ▶</button>
+        <div class="dp-ai-result" id="dpAIResult"></div>
+
+        <div class="dp-sep"></div>
+
+        <div class="dp-status" id="dpStatus"></div>
+
+      </div>
+    </aside>
+
+  </div><!-- /app-layout -->
+
+  <script src="app.js"></script>
+</body>
+</html>

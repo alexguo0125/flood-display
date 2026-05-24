@@ -1,0 +1,10 @@
+.env
+node_modules/
+.venv/
+.git/
+.claude/
+__MACOSX/
+.DS_Store
+*.pyc
+__pycache__/
+npm-debug.log*
