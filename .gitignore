@@ -1,6 +1,10 @@
 .env
 node_modules/
-.DS_Store
-__MACOSX/
 .venv/
+.git/
 .claude/
+__MACOSX/
+.DS_Store
+*.pyc
+__pycache__/
+npm-debug.log*

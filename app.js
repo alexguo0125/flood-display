@@ -11,7 +11,7 @@
 const API_BASE_URL = window.FLOOD_API_BASE_URL || (
   ['localhost', '127.0.0.1'].includes(window.location.hostname)
     ? ''
-    :'https://flood-display-backend-git-main-alexguo-s-projects.vercel.app' // TODO: replace after Vercel deployment
+    : 'https://YOUR-VERCEL-BACKEND.vercel.app' // TODO: replace after Vercel deployment
 );
 const API_TIMEOUT_MS = 12000;
 
@@ -2059,7 +2059,7 @@ function rescale() {
     return;
   }
 
-  const panelW = isMobile ? 0 : 270;
+  const panelW = 0; // Demo controls are always inside the hamburger drawer, so no sidebar space is reserved.
   const padH   = isMobile ? 10 : 32;
   const padV   = isMobile ? 10 : 28;
 
