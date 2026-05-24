@@ -1703,6 +1703,8 @@ function render() {
   $('btnScenarioOffline').textContent = ui.controls.offline;
   if (state.mode === 'normal') {
     els.overlay.hidden = true;
+    els.overlay.classList.remove('offline-overlay');
+    els.ovBody.classList.remove('ov-body-offline');
     renderNormal(t);
   } else {
     els.overlay.hidden = false;
@@ -1802,6 +1804,8 @@ function renderOverlay(t) {
   const night = state.night;
 
   if (state.mode === 'low_battery') {
+    els.overlay.classList.remove('offline-overlay');
+    els.ovBody.classList.remove('ov-body-offline');
     const bg  = '#0e0c0a';
     const fg  = '#f0a000';
     const sub = '#b8b090';
@@ -1839,6 +1843,8 @@ function renderOfflineScreen(t) {
   const update = state.lastKnownUpdate || state.updatedTime || '--:--';
   const trace = traceRecord();
 
+  els.overlay.classList.add('offline-overlay');
+  els.ovBody.classList.add('ov-body-offline');
   els.overlay.style.background = state.night ? 'var(--night-screen)' : 'var(--screen-bg)';
   els.ovBody.style.color = state.night ? 'var(--night-ink)' : 'var(--ink)';
   els.ovBody.innerHTML = `
