@@ -462,9 +462,9 @@ body {
 .info-section {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: clamp(4px, 0.8vw, 8px);
   border: 1px solid var(--border);
-  padding: 6px 8px;
+  padding: clamp(6px, 1vw, 12px) clamp(8px, 1.2vw, 14px);
   min-height: 0;
   overflow: hidden;
 }
@@ -474,7 +474,7 @@ body {
 }
 
 .section-lbl {
-  font-size: 12px;
+  font-size: clamp(12px, 1.35vw, 15px);
   font-weight: bold;
   color: var(--muted);
   text-transform: uppercase;
@@ -482,8 +482,8 @@ body {
 }
 
 .section-txt {
-  font-size: 15px;
-  line-height: 1.25;
+  font-size: clamp(16px, 1.75vw, 21px);
+  line-height: 1.22;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -491,14 +491,14 @@ body {
 .act-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: clamp(4px, 0.7vw, 9px);
 }
 
 .act-item {
-  font-size: 13.5px;
-  line-height: 1.25;
+  font-size: clamp(15px, 1.55vw, 19px);
+  line-height: 1.22;
   display: flex;
-  gap: 7px;
+  gap: clamp(6px, 0.7vw, 10px);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -515,16 +515,16 @@ body {
 
 .route-diagram {
   border: 1px solid var(--ink);
-  padding: 5px 7px;
-  font-size: 14px;
-  line-height: 1.15;
+  padding: clamp(5px, 0.8vw, 9px) clamp(7px, 1vw, 12px);
+  font-size: clamp(14px, 1.45vw, 18px);
+  line-height: 1.14;
   font-weight: bold;
   text-transform: uppercase;
   white-space: normal;
 }
 
 .route-note {
-  font-size: 12.5px;
+  font-size: clamp(14px, 1.35vw, 17px);
   line-height: 1.2;
 }
 
@@ -547,9 +547,10 @@ body {
   flex-direction: row;
   align-items: center;
   gap: 0;
-  font-size: 15px;
+  font-size: clamp(16px, 1.55vw, 20px);
   line-height: 1.1;
   font-weight: bold;
+  overflow-wrap: anywhere;
 }
 
 .help-list span + span::before {
@@ -565,6 +566,26 @@ body {
 
 .risk-high .help-list {
   font-size: 16px;
+}
+
+
+/* JS-driven adaptive typography uses these classes/inline sizes to maximise
+   readability while still preventing overlap in long translations and compact
+   phone landscape. */
+.happening-section,
+.action-section,
+.route-section {
+  container-type: size;
+}
+
+#hapTxt,
+#actList,
+#routeDiagram,
+#routeNote,
+#helpList,
+#warningType,
+#primaryAction {
+  max-width: 100%;
 }
 
 .trace-panel {
@@ -1094,11 +1115,238 @@ body.drawer-open { overflow: hidden; }
   }
 }
 
+
+/* Portrait phone/PWA — fill the tall screen and reflow the resident content.
+   This avoids the old behaviour where a fixed landscape device sat in the
+   middle of the phone with large blank space above and below. */
+@media (orientation: portrait) and (max-width: 700px) {
+  body {
+    background: #ececea;
+  }
+
+  .app-layout,
+  .device-area {
+    width: 100vw;
+    height: 100dvh;
+    min-height: 100svh;
+  }
+
+  .device-area {
+    padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+  }
+
+  .device-scale-wrapper {
+    width: 100%;
+    height: 100%;
+    transform: none !important;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .device-outer {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border-radius: 12px;
+  }
+
+  .screen-rim {
+    inset: 12px 14px;
+  }
+
+  .screw { width: 8px; height: 8px; }
+  .screw.tl { top: 8px; left: 8px; }
+  .screw.tr { top: 8px; right: 8px; }
+  .screw.bl { bottom: 8px; left: 8px; }
+  .screw.br { bottom: 8px; right: 8px; }
+
+  .screen-header {
+    padding: 7px 11px;
+    min-height: 38px;
+  }
+
+  .hdr-title {
+    font-size: clamp(13px, 4.2vw, 18px);
+  }
+
+  .hdr-right { gap: 6px; }
+  .batt-svg { width: 28px; height: 13px; }
+  .signal { font-size: 8px; }
+  .clock { font-size: clamp(9px, 3vw, 12px); min-width: 54px; }
+  .mobile-menu-btn { width: 25px; height: 24px; font-size: 16px; border-radius: 5px; }
+
+  .screen-body {
+    padding: 7px 10px;
+    gap: 6px;
+    min-height: 0;
+  }
+
+  .alert-card {
+    padding: 7px 8px 8px;
+    flex-shrink: 0;
+  }
+
+  .alert-top { gap: 8px; }
+  .flood-icon,
+  .risk-low .flood-icon,
+  .risk-high .flood-icon {
+    width: clamp(44px, 13vw, 58px);
+    height: clamp(40px, 12vw, 52px);
+  }
+
+  .warning-type,
+  .risk-low .warning-type,
+  .risk-high .warning-type {
+    font-size: clamp(14px, 4.2vw, 20px);
+    line-height: 1.12;
+  }
+
+  .risk-row,
+  .risk-low .risk-row,
+  .risk-high .risk-row {
+    margin-top: 4px;
+    gap: 7px;
+  }
+
+  .risk-pre { font-size: clamp(10px, 3.4vw, 14px); }
+  .risk-box,
+  .risk-low .risk-box,
+  .risk-high .risk-box {
+    padding: 1px 8px;
+    border-width: 1px;
+  }
+  .risk-val,
+  .risk-low .risk-val,
+  .risk-high .risk-val {
+    font-size: clamp(14px, 4.3vw, 20px);
+  }
+
+  .primary-action,
+  .risk-low .primary-action,
+  .risk-medium .primary-action,
+  .risk-high .primary-action {
+    margin-top: 6px;
+    padding-top: 6px;
+    font-size: clamp(20px, 6.2vw, 30px);
+    line-height: 1.12;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(92px, 0.9fr) minmax(126px, 1.2fr) minmax(112px, 1.05fr);
+    gap: 6px;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .action-section { grid-row: auto; }
+
+  .info-section {
+    padding: 6px 8px;
+    gap: 4px;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .section-lbl {
+    font-size: clamp(10px, 3.2vw, 14px);
+    line-height: 1;
+  }
+
+  .section-txt {
+    font-size: clamp(14px, 4.2vw, 19px);
+    line-height: 1.17;
+  }
+
+  .act-list { gap: 3px; }
+  .act-item {
+    font-size: clamp(13px, 3.9vw, 18px);
+    line-height: 1.17;
+    gap: 5px;
+  }
+  .act-num { min-width: 16px; }
+
+  .route-diagram {
+    padding: 4px 6px;
+    font-size: clamp(12px, 3.4vw, 17px);
+    line-height: 1.08;
+  }
+
+  .route-note {
+    font-size: clamp(12px, 3.4vw, 16px);
+    line-height: 1.13;
+  }
+
+  .help-section {
+    padding: 5px 7px;
+    gap: 6px;
+    border-width: 2px;
+    flex-shrink: 0;
+  }
+
+  .help-list,
+  .risk-high .help-list {
+    font-size: clamp(14px, 4vw, 20px);
+    line-height: 1.06;
+  }
+
+  .help-list span + span::before { padding: 0 6px; }
+
+  .screen-footer {
+    padding: 4px 8px;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .footer-meta {
+    font-size: clamp(7px, 2.1vw, 9px);
+    line-height: 1.06;
+  }
+
+  /* Footer language/night controls duplicate the hamburger drawer controls.
+     Hide them in portrait phones so the emergency content keeps priority. */
+  .footer-controls { display: none; }
+
+  .connection-banner {
+    padding: 4px 6px;
+    gap: 3px 8px;
+    font-size: clamp(9px, 2.6vw, 11px);
+    line-height: 1.05;
+  }
+  .connection-title { font-size: clamp(10px, 2.9vw, 12px); }
+}
+
+/* Very short portrait screens: keep the same layout but compress spacing. */
+@media (orientation: portrait) and (max-width: 700px) and (max-height: 780px) {
+  .screen-rim { inset: 9px 11px; }
+  .screen-header { min-height: 34px; padding: 5px 9px; }
+  .screen-body { padding: 5px 8px; gap: 4px; }
+  .alert-card { padding: 5px 7px 6px; }
+  .primary-action,
+  .risk-low .primary-action,
+  .risk-medium .primary-action,
+  .risk-high .primary-action { font-size: clamp(17px, 5.2vw, 24px); }
+  .info-grid {
+    grid-template-rows: minmax(72px, 0.78fr) minmax(102px, 1fr) minmax(90px, 0.92fr);
+    gap: 4px;
+  }
+  .info-section { padding: 4px 6px; gap: 2px; }
+  .section-txt { font-size: clamp(12px, 3.7vw, 16px); }
+  .act-item { font-size: clamp(11px, 3.5vw, 15px); }
+  .route-diagram { font-size: clamp(10px, 3.1vw, 14px); }
+  .route-note { font-size: clamp(10px, 3vw, 13px); }
+  .help-section { padding: 3px 6px; }
+  .screen-footer { padding: 3px 7px; }
+}
+
+
 /* Landscape mobile/PWA — compact, no-clipping layout.
    We let the device use the full phone landscape viewport, then reduce the
    internal typography/spacing so the content fits vertically instead of being
    hidden behind lower sections. */
-@media (max-width: 900px) and (orientation: landscape) {
+@media (orientation: landscape) and (max-height: 560px) {
   body {
     background: #ececea;
   }
@@ -1253,12 +1501,12 @@ body.drawer-open { overflow: hidden; }
   }
 
   .section-lbl {
-    font-size: clamp(8px, 1.8vw, 10px);
+    font-size: clamp(9px, 1.9vw, 12px);
     line-height: 1;
   }
 
   .section-txt {
-    font-size: clamp(9px, 2vw, 11px);
+    font-size: clamp(11px, 2.25vw, 15px);
     line-height: 1.14;
   }
 
@@ -1267,7 +1515,7 @@ body.drawer-open { overflow: hidden; }
   }
 
   .act-item {
-    font-size: clamp(8.5px, 1.8vw, 10.5px);
+    font-size: clamp(10px, 2.05vw, 14px);
     line-height: 1.14;
     gap: 4px;
   }
@@ -1278,12 +1526,12 @@ body.drawer-open { overflow: hidden; }
 
   .route-diagram {
     padding: 3px 5px;
-    font-size: clamp(8.5px, 1.9vw, 10.5px);
+    font-size: clamp(10px, 2vw, 13.5px);
     line-height: 1.05;
   }
 
   .route-note {
-    font-size: clamp(8px, 1.8vw, 10px);
+    font-size: clamp(9.5px, 1.9vw, 12.5px);
     line-height: 1.1;
   }
 
@@ -1295,7 +1543,7 @@ body.drawer-open { overflow: hidden; }
 
   .help-list,
   .risk-high .help-list {
-    font-size: clamp(10px, 2.1vw, 13px);
+    font-size: clamp(11px, 2.2vw, 15px);
     line-height: 1.05;
   }
 
@@ -1332,7 +1580,7 @@ body.drawer-open { overflow: hidden; }
 }
 
 /* Very short landscape phones need one more compression step. */
-@media (max-width: 900px) and (orientation: landscape) and (max-height: 430px) {
+@media (orientation: landscape) and (max-height: 430px) {
   .screen-rim { inset: 8px 12px; }
   .screen-header { min-height: 27px; padding: 3px 10px; }
   .screen-body { padding: 4px 8px; gap: 3px; }
@@ -1347,10 +1595,10 @@ body.drawer-open { overflow: hidden; }
   .risk-low .primary-action,
   .risk-medium .primary-action,
   .risk-high .primary-action { font-size: clamp(13px, 2.7vw, 17px); }
-  .section-lbl { font-size: 8px; }
-  .section-txt { font-size: 9px; }
-  .act-item { font-size: 8.5px; }
-  .route-note { font-size: 8px; }
+  .section-lbl { font-size: 8.5px; }
+  .section-txt { font-size: 10px; }
+  .act-item { font-size: 9.5px; }
+  .route-note { font-size: 9px; }
   .screen-footer { padding: 2px 7px; }
   .footer-meta { font-size: 7px; }
 }

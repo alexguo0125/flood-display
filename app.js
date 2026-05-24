@@ -1708,6 +1708,7 @@ function render() {
     els.overlay.hidden = false;
     renderOverlay(t);
   }
+  scheduleAdaptiveTypography();
 }
 
 function renderNormal(t) {
@@ -1782,6 +1783,7 @@ function renderNormal(t) {
 
   // Battery: normal = full
   setBattery(false);
+  scheduleAdaptiveTypography();
 }
 
 function renderConnectionBanner(copy) {
@@ -2045,17 +2047,112 @@ function renderTraceability() {
   els.traceNote.textContent = trace.note;
 }
 
+
+// ─── Adaptive typography ───────────────────────────────────
+// Enlarges the resident-facing text when there is empty space, then shrinks it
+// only if the current language/scenario would overflow. This keeps English,
+// Chinese, Vietnamese, French, Japanese and Korean readable without overlap.
+let fitTypographyFrame = null;
+
+function scheduleAdaptiveTypography() {
+  if (fitTypographyFrame) cancelAnimationFrame(fitTypographyFrame);
+  fitTypographyFrame = requestAnimationFrame(() => {
+    fitTypographyFrame = requestAnimationFrame(() => {
+      fitAdaptiveTypography();
+      fitTypographyFrame = null;
+    });
+  });
+}
+
+function setFontForSelector(root, selector, px, lineHeight = 1.18) {
+  root.querySelectorAll(selector).forEach(node => {
+    node.style.fontSize = `${px}px`;
+    node.style.lineHeight = String(lineHeight);
+  });
+}
+
+function groupFits(container) {
+  if (!container || container.hidden || container.offsetParent === null) return true;
+  // +1 avoids false positives caused by sub-pixel rounding.
+  return container.scrollHeight <= container.clientHeight + 1 &&
+         container.scrollWidth  <= container.clientWidth + 1;
+}
+
+function fitFontGroup(container, rules, minScale = 0.64) {
+  if (!container || container.offsetParent === null) return;
+  const steps = 24;
+  for (let i = 0; i <= steps; i += 1) {
+    const scale = 1 - (i / steps) * (1 - minScale);
+    rules.forEach(rule => {
+      const size = Math.max(rule.min, rule.max * scale);
+      setFontForSelector(container, rule.selector, size, rule.lineHeight || 1.18);
+    });
+    if (groupFits(container)) return;
+  }
+}
+
+function fitSingleElement(el, maxPx, minPx, lineHeight = 1.18) {
+  if (!el || el.offsetParent === null) return;
+  const steps = 20;
+  for (let i = 0; i <= steps; i += 1) {
+    const size = maxPx - ((maxPx - minPx) * i / steps);
+    el.style.fontSize = `${size}px`;
+    el.style.lineHeight = String(lineHeight);
+    if (el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1) return;
+  }
+}
+
+function fitAdaptiveTypography() {
+  if (!els || !els.screen || els.overlay?.hidden === false) return;
+  const vw = window.visualViewport?.width || window.innerWidth;
+  const vh = window.visualViewport?.height || window.innerHeight;
+  const compactLandscape = vw > vh && vh <= 560;
+  const phonePortrait = vh >= vw && vw <= 700;
+
+  const maxWarning = compactLandscape ? 18 : (phonePortrait ? 21 : 24);
+  const maxPrimary = compactLandscape ? 22 : (phonePortrait ? 30 : 32);
+
+  // Main alert: let short text become prominent, but protect long translations.
+  fitSingleElement(els.warningType, maxWarning, compactLandscape ? 11 : 13, 1.12);
+  fitSingleElement(els.primaryAction, maxPrimary, compactLandscape ? 13 : 16, 1.12);
+
+  // Middle panels. These are grouped by section so the total block fits, not
+  // just each individual line. This avoids overlap when route/action text grows.
+  fitFontGroup(document.querySelector('.happening-section'), [
+    { selector: '.section-lbl', max: compactLandscape ? 12 : (phonePortrait ? 14 : 15), min: compactLandscape ? 8 : 10, lineHeight: 1.0 },
+    { selector: '.section-txt', max: compactLandscape ? 16 : (phonePortrait ? 19 : 22), min: compactLandscape ? 10 : 12, lineHeight: 1.18 },
+  ], compactLandscape ? 0.62 : (phonePortrait ? 0.58 : 0.66));
+
+  fitFontGroup(document.querySelector('.action-section'), [
+    { selector: '.section-lbl', max: compactLandscape ? 12 : (phonePortrait ? 14 : 15), min: compactLandscape ? 8 : 10, lineHeight: 1.0 },
+    { selector: '.act-item', max: compactLandscape ? 15 : (phonePortrait ? 18 : 20), min: compactLandscape ? 9 : 11, lineHeight: 1.18 },
+  ], compactLandscape ? 0.60 : (phonePortrait ? 0.58 : 0.64));
+
+  fitFontGroup(document.querySelector('.route-section'), [
+    { selector: '.section-lbl', max: compactLandscape ? 12 : (phonePortrait ? 14 : 15), min: compactLandscape ? 8 : 10, lineHeight: 1.0 },
+    { selector: '.route-diagram', max: compactLandscape ? 14 : (phonePortrait ? 17 : 19), min: compactLandscape ? 9 : 10, lineHeight: 1.08 },
+    { selector: '.route-note', max: compactLandscape ? 13 : (phonePortrait ? 16 : 18), min: compactLandscape ? 9 : 10, lineHeight: 1.16 },
+  ], compactLandscape ? 0.60 : (phonePortrait ? 0.56 : 0.62));
+
+  fitSingleElement(els.helpList, compactLandscape ? 16 : (phonePortrait ? 20 : 22), compactLandscape ? 10 : 12, 1.05);
+}
+
 // ─── Device scaling ───────────────────────────────────────
 function rescale() {
   const vw = window.visualViewport?.width || window.innerWidth;
   const vh = window.visualViewport?.height || window.innerHeight;
-  const isMobile = vw <= 900;
+  const isMobile = vw <= 900 || vh <= 900;
   const isLandscape = vw > vh;
+  const isPhoneLandscape = isLandscape && vh <= 560;
+  const isPhonePortrait = !isLandscape && vw <= 700;
 
-  // Mobile landscape uses CSS responsive dimensions so the e-ink shell fills
-  // the PWA viewport like an app. Do not apply the old fixed-size scale there.
-  if (isMobile && isLandscape) {
+  // Phone layouts use responsive CSS dimensions rather than fixed 880×590
+  // scaling. Landscape is detected by height so Pro Max devices do not fall
+  // back to desktop. Portrait is detected by width so the device can use the
+  // full tall screen and reflow panels vertically.
+  if (isPhoneLandscape || isPhonePortrait) {
     els.scaleWrap.style.transform = 'none';
+    scheduleAdaptiveTypography();
     return;
   }
 
@@ -2068,6 +2165,7 @@ function rescale() {
   const scale  = Math.max(0.25, Math.min(availW / 880, availH / 590));
 
   els.scaleWrap.style.transform = `scale(${scale})`;
+  scheduleAdaptiveTypography();
 }
 
 // ─── Mobile/PWA controls drawer ───────────────────────────
