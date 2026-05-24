@@ -11,7 +11,7 @@
 const API_BASE_URL = window.FLOOD_API_BASE_URL || (
   ['localhost', '127.0.0.1'].includes(window.location.hostname)
     ? ''
-    : 'https://YOUR-VERCEL-BACKEND.vercel.app' // TODO: replace after Vercel deployment
+    :'https://flood-display-backend-git-main-alexguo-s-projects.vercel.app' // TODO: replace after Vercel deployment
 );
 const API_TIMEOUT_MS = 12000;
 
