@@ -1362,6 +1362,36 @@ body {
 }
 .dp-btn:hover { background: var(--panel-btn-hover); }
 
+
+.dp-label-sub {
+  margin-top: 6px;
+  color: #b5b5c0;
+  font-size: 9px;
+  opacity: 0.9;
+}
+
+.dp-btn-alarm {
+  background: #3a1a1a;
+  border: 1px solid #e05252;
+  color: #fff4f4;
+  font-weight: bold;
+  letter-spacing: 0.02em;
+}
+.dp-btn-alarm:hover { background: #4b2020; }
+.dp-btn-alarm.is-playing {
+  background: #5a1515;
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 1px rgba(255, 80, 80, 0.35) inset;
+}
+
+.dp-alarm-note {
+  margin-top: -2px;
+  margin-bottom: 4px;
+  color: #9a9aa6;
+  font-size: 8px;
+  line-height: 1.25;
+}
+
 .dp-night-lbl {
   display: flex;
   align-items: center;

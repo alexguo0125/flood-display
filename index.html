@@ -50,7 +50,7 @@
                   </svg>
                   <span class="signal" aria-label="Signal strength">▁▃▅▇</span>
                   <span class="clock" id="clock">–:– –M</span>
-                  <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open demo controls" aria-controls="demoPanel" aria-expanded="false">☰</button>
+                  <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open demo controls" aria-controls="demoPanel" aria-expanded="false">☰</button>
                 </div>
               </header>
               <div class="hdr-line" id="hdrLine"></div>
@@ -165,7 +165,7 @@
 
     <!-- ─── Desktop demo control panel ──────────────────── -->
     <aside class="demo-panel" id="demoPanel" aria-label="Demo controls">
-      <button class="drawer-close-btn" id="drawerCloseBtn" aria-label="Close demo controls">×</button>
+      <button type="button" class="drawer-close-btn" id="drawerCloseBtn" aria-label="Close demo controls">×</button>
       <div class="demo-scroll">
 
         <div class="dp-heading">DEMO CONTROLS</div>
@@ -177,19 +177,23 @@
         <div class="dp-sep"></div>
 
         <div class="dp-label">System Modes</div>
-        <button class="dp-btn" id="btnNormal">Normal Mode</button>
-        <button class="dp-btn" id="btnLowBatt">Low Battery Mode</button>
-        <button class="dp-btn" id="btnConnLost">Connection Lost Mode</button>
+        <button type="button" class="dp-btn" id="btnNormal" data-mode-action="normal">Normal Mode</button>
+        <button type="button" class="dp-btn" id="btnLowBatt" data-mode-action="low_battery">Low Battery Mode</button>
+        <button type="button" class="dp-btn" id="btnConnLost" data-mode-action="connection_lost">Connection Lost Mode</button>
+
+        <div class="dp-label dp-label-sub" id="alarmSectionLabel">Emergency Sound</div>
+        <button type="button" class="dp-btn dp-btn-alarm" id="btnEmergencyAlarm" aria-pressed="false">Play Emergency Alarm ▶</button>
+        <div class="dp-alarm-note" id="alarmNote">Generated browser sound. Use low volume for demo.</div>
 
         <div class="dp-sep"></div>
 
         <div class="dp-label">Demo Data Mode</div>
-        <button class="dp-btn" id="btnCurrentOfficial">Current Official Mode</button>
-        <button class="dp-btn risk-btn-low"  id="btnSimLow">Historical Scenario: Ready</button>
-        <button class="dp-btn risk-btn-med"  id="btnSimMed">Historical Scenario: Prepare</button>
-        <button class="dp-btn risk-btn-high" id="btnSimHigh">Historical Scenario: Act Now</button>
-        <button class="dp-btn risk-btn-high" id="btnScenarioLeave">Historical Scenario: Leave Now</button>
-        <button class="dp-btn" id="btnScenarioOffline">Historical Scenario: Connection Lost</button>
+        <button type="button" class="dp-btn" id="btnCurrentOfficial" data-demo-action="current">Current Official Mode</button>
+        <button type="button" class="dp-btn risk-btn-low"  id="btnSimLow" data-demo-scenario="READY">Historical Scenario: Ready</button>
+        <button type="button" class="dp-btn risk-btn-med"  id="btnSimMed" data-demo-scenario="PREPARE">Historical Scenario: Prepare</button>
+        <button type="button" class="dp-btn risk-btn-high" id="btnSimHigh" data-demo-scenario="ACT_NOW">Historical Scenario: Act Now</button>
+        <button type="button" class="dp-btn risk-btn-high" id="btnScenarioLeave" data-demo-scenario="LEAVE_NOW">Historical Scenario: Leave Now</button>
+        <button type="button" class="dp-btn" id="btnScenarioOffline" data-demo-scenario="OFFLINE">Historical Scenario: Connection Lost</button>
 
         <div class="dp-sep"></div>
 
@@ -216,8 +220,8 @@
             Official warning active
           </label>
         </div>
-        <button class="dp-btn dp-btn-ai" id="btnFillAI">Fill from current scenario</button>
-        <button class="dp-btn dp-btn-ai dp-btn-ai-run" id="btnAnalyseAI">Analyse Risk with AI ▶</button>
+        <button type="button" class="dp-btn dp-btn-ai" id="btnFillAI">Fill from current scenario</button>
+        <button type="button" class="dp-btn dp-btn-ai dp-btn-ai-run" id="btnAnalyseAI">Analyse Risk with AI ▶</button>
         <div class="dp-ai-result" id="dpAIResult"></div>
 
         <div class="dp-sep"></div>

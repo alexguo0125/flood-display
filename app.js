@@ -904,8 +904,8 @@ const CHECKLISTS = [
   { key: "en", name: "English", file: "assets/1.png" },
   { key: "zh", name: "Chinese", file: "assets/2.png" },
   { key: "vi", name: "Vietnamese", file: "assets/3.png" },
-  { key: "ar", name: "Arabic", file: "assets/4.png" },
-  { key: "es", name: "Spanish", file: "assets/5.png" },
+  { key: "fr", name: "French", file: "assets/4.png" },
+  { key: "ja", name: "Japanese", file: "assets/5.png" },
   { key: "ko", name: "Korean", file: "assets/6.png" },
 ];
 
@@ -924,6 +924,114 @@ const SCENARIO_FILES = {
   current: './data/current_official_mode.json',
   historical: './data/historical_scenario_mode.json',
 };
+
+// Static fallbacks allow the demo controls to work even when index.html is
+// opened directly with file://, where browsers block fetch('./data/*.json').
+// GitHub Pages/Vercel will still load the JSON files normally.
+const STATIC_CURRENT_OFFICIAL = {
+  "mode": "Current Official Mode",
+  "scenario": "CURRENT_NORMAL",
+  "timestamp": "2026-05-21T00:00:00+10:00",
+  "location": "Maribyrnong",
+  "officialWarningLevel": "No active warning",
+  "rainfallTrend": "normal",
+  "riverTrend": "stable",
+  "dataStatus": "current",
+  "source": "VicEmergency public events GeoJSON; SES; Maribyrnong Council; Melbourne Water; BOM",
+  "sourceUrl": "https://emergency.vic.gov.au/public/events-geojson.json",
+  "recommendedAction": "Stay prepared and review your flood plan.",
+  "isRealCurrentWarning": true,
+  "provenanceNote": "Current Official Mode uses public official source references and public endpoint checks where available; it does not represent approved formal VicEmergency data-feed access."
+};
+
+const STATIC_HISTORICAL_SCENARIOS = [
+  {
+    "mode": "Historical Scenario Mode",
+    "scenario": "READY",
+    "timestamp": "2022-10-13T08:00:00+11:00",
+    "location": "Maribyrnong",
+    "officialWarningLevel": "No active warning",
+    "rainfallTrend": "normal",
+    "riverTrend": "stable",
+    "dataStatus": "controlled_demo",
+    "source": "SES Maribyrnong flood guide; Maribyrnong Council River Watch; Australian Warning System",
+    "sourceUrl": "https://www.ses.vic.gov.au/plan-and-stay-safe/flood-guides/maribyrnong-city-council",
+    "recommendedAction": "Stay prepared and review your flood plan.",
+    "isRealCurrentWarning": false,
+    "provenanceNote": "Controlled prototype scenario based on official warning structure and historical Maribyrnong flood context; not a live current warning."
+  },
+  {
+    "mode": "Historical Scenario Mode",
+    "scenario": "PREPARE",
+    "timestamp": "2022-10-13T18:00:00+11:00",
+    "location": "Maribyrnong",
+    "officialWarningLevel": "Advice",
+    "rainfallTrend": "increasing",
+    "riverTrend": "rising",
+    "dataStatus": "controlled_demo",
+    "source": "Australian Warning System; SES Maribyrnong flood guide; Melbourne Water rainfall and river levels",
+    "sourceUrl": "https://www.australianwarningsystem.com.au/",
+    "recommendedAction": "Prepare your emergency kit and move important items above floor level.",
+    "isRealCurrentWarning": false,
+    "provenanceNote": "Controlled prototype scenario based on official warning structure and historical Maribyrnong flood context; not a live current warning."
+  },
+  {
+    "mode": "Historical Scenario Mode",
+    "scenario": "ACT_NOW",
+    "timestamp": "2022-10-14T02:00:00+11:00",
+    "location": "Maribyrnong",
+    "officialWarningLevel": "Watch and Act",
+    "rainfallTrend": "heavy",
+    "riverTrend": "rising quickly",
+    "dataStatus": "controlled_demo",
+    "source": "Australian Warning System; Maribyrnong Council River Watch; Melbourne Water Maribyrnong River flood model/maps",
+    "sourceUrl": "https://letstalk.melbournewater.com.au/maribyrnong-river-flood-model/maribyrnong-river-flood-model-maps",
+    "recommendedAction": "Act now: move cars, pets and valuables to higher ground and monitor evacuation advice.",
+    "isRealCurrentWarning": false,
+    "provenanceNote": "Controlled prototype scenario based on official warning structure and historical Maribyrnong flood context; not a live current warning."
+  },
+  {
+    "mode": "Historical Scenario Mode",
+    "scenario": "LEAVE_NOW",
+    "timestamp": "2022-10-14T05:30:00+11:00",
+    "location": "Maribyrnong",
+    "officialWarningLevel": "Emergency Warning - Evacuate",
+    "rainfallTrend": "heavy",
+    "riverTrend": "major flooding",
+    "dataStatus": "controlled_demo",
+    "source": "Australian Warning System; Victorian Ombudsman Maribyrnong/Rivervue flood-risk report; Melbourne Water flood model/maps",
+    "sourceUrl": "https://www.ombudsman.vic.gov.au/our-impact/investigation-reports/when-the-water-rises-flood-risk-at-two-housing-estates/",
+    "recommendedAction": "Leave now if advised by authorities. Take phone, medicine, keys and documents.",
+    "isRealCurrentWarning": false,
+    "provenanceNote": "Controlled prototype scenario based on official warning structure and historical Maribyrnong flood context; not a live current warning."
+  },
+  {
+    "mode": "Historical Scenario Mode",
+    "scenario": "OFFLINE",
+    "timestamp": "2022-10-14T06:00:00+11:00",
+    "location": "Maribyrnong",
+    "officialWarningLevel": "Watch and Act",
+    "rainfallTrend": "unknown",
+    "riverTrend": "unknown",
+    "dataStatus": "connection_lost",
+    "source": "Last known official-style warning",
+    "sourceUrl": "https://emergency.vic.gov.au/",
+    "recommendedAction": "Connection lost. Follow the last known warning and use offline emergency checklist links.",
+    "isRealCurrentWarning": false,
+    "provenanceNote": "Controlled prototype scenario based on official warning structure and historical Maribyrnong flood context; not a live current warning."
+  }
+];
+
+function staticScenarioFallback(url) {
+  if (url === SCENARIO_FILES.current) return structuredCloneSafe(STATIC_CURRENT_OFFICIAL);
+  if (url === SCENARIO_FILES.historical) return structuredCloneSafe(STATIC_HISTORICAL_SCENARIOS);
+  return null;
+}
+
+function structuredCloneSafe(value) {
+  if (typeof structuredClone === 'function') return structuredClone(value);
+  return JSON.parse(JSON.stringify(value));
+}
 
 const DISPLAY_RISK = {
   READY: 'LOW',
@@ -1355,6 +1463,51 @@ Object.assign(T["한국어"], {
   night_mode_chk: "야간 모드",
 });
 
+// Emergency alarm UI copy. The alarm sound is generated in-browser
+// through the Web Audio API, so no external audio file is required.
+const ALARM_COPY = {
+  "English": {
+    alarm_section: "Emergency Sound",
+    alarm_play: "Play Emergency Alarm ▶",
+    alarm_stop: "Stop Emergency Alarm ■",
+    alarm_note: "Generated browser sound. Use low volume for demo."
+  },
+  "中文": {
+    alarm_section: "紧急警报声",
+    alarm_play: "播放紧急警报 ▶",
+    alarm_stop: "停止紧急警报 ■",
+    alarm_note: "浏览器生成警报声。演示时请调低音量。"
+  },
+  "Tiếng Việt": {
+    alarm_section: "Âm báo khẩn cấp",
+    alarm_play: "Phát âm báo khẩn cấp ▶",
+    alarm_stop: "Dừng âm báo khẩn cấp ■",
+    alarm_note: "Âm thanh tạo trong trình duyệt. Hãy giảm âm lượng khi demo."
+  },
+  "Français": {
+    alarm_section: "Son d’alerte",
+    alarm_play: "Lire l’alerte d’urgence ▶",
+    alarm_stop: "Arrêter l’alerte ■",
+    alarm_note: "Son généré par le navigateur. Volume bas recommandé pour la démo."
+  },
+  "日本語": {
+    alarm_section: "緊急警報音",
+    alarm_play: "緊急警報を再生 ▶",
+    alarm_stop: "緊急警報を停止 ■",
+    alarm_note: "ブラウザ生成音です。デモでは音量を下げてください。"
+  },
+  "한국어": {
+    alarm_section: "긴급 경보음",
+    alarm_play: "긴급 경보 재생 ▶",
+    alarm_stop: "긴급 경보 중지 ■",
+    alarm_note: "브라우저 생성음입니다. 데모 시 볼륨을 낮춰 주세요."
+  }
+};
+
+Object.entries(ALARM_COPY).forEach(([lang, copy]) => {
+  if (T[lang]) Object.assign(T[lang], copy);
+});
+
 UI_CONTENT["Français"] = T["Français"];
 UI_CONTENT["日本語"] = T["日本語"];
 UI_CONTENT["한국어"] = T["한국어"];
@@ -1372,9 +1525,12 @@ const state = {
   displayState: "PREPARE",
   updatedTime: "",
   lastKnownUpdate: "",
+  alarmActive: false,
 };
 
 // ─── DOM refs ─────────────────────────────────────────────
+let alarmAudio = null;
+
 const $  = id => document.getElementById(id);
 const els = {
   screen:     $('screen'),
@@ -1436,6 +1592,9 @@ const els = {
   dpLang:     $('dpLang'),
   dpNightChk: $('dpNightChk'),
   dpStatus:   $('dpStatus'),
+  alarmSectionLabel: $('alarmSectionLabel'),
+  btnEmergencyAlarm: $('btnEmergencyAlarm'),
+  alarmNote:  $('alarmNote'),
   demoPanel:  $('demoPanel'),
   mobileMenuBtn: $('mobileMenuBtn'),
   drawerBackdrop: $('drawerBackdrop'),
@@ -1484,6 +1643,7 @@ function init() {
   $('btnNormal').onclick   = () => setMode('normal');
   $('btnLowBatt').onclick  = () => setMode('low_battery');
   $('btnConnLost').onclick = () => setMode('connection_lost');
+  $('btnEmergencyAlarm').onclick = toggleEmergencyAlarm;
 
   // Night mode — all three checkboxes share state
   els.nightChk.onchange    = () => setNight(els.nightChk.checked);
@@ -1530,6 +1690,132 @@ function init() {
   rescale();
 }
 
+// ─── Emergency alarm sound ─────────────────────────────────
+function ensureAudioContext() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) throw new Error('Web Audio API is not supported in this browser.');
+  const context = new AudioContextClass();
+  return context;
+}
+
+function startEmergencyAlarm() {
+  stopEmergencyAlarm({ silent: true });
+
+  try {
+    const context = ensureAudioContext();
+    const master = context.createGain();
+    master.gain.value = 0.0001;
+    master.connect(context.destination);
+
+    // Two oscillators create a simple emergency siren without storing an audio file.
+    const oscA = context.createOscillator();
+    const oscB = context.createOscillator();
+    oscA.type = 'sawtooth';
+    oscB.type = 'square';
+    oscA.frequency.value = 640;
+    oscB.frequency.value = 960;
+
+    const gainA = context.createGain();
+    const gainB = context.createGain();
+    gainA.gain.value = 0.16;
+    gainB.gain.value = 0.045;
+
+    oscA.connect(gainA).connect(master);
+    oscB.connect(gainB).connect(master);
+
+    const now = context.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(0.18, now + 0.08);
+
+    oscA.start(now);
+    oscB.start(now);
+
+    let high = false;
+    const sweep = () => {
+      if (!alarmAudio) return;
+      high = !high;
+      const t = context.currentTime;
+      const base = high ? 1080 : 620;
+      oscA.frequency.cancelScheduledValues(t);
+      oscB.frequency.cancelScheduledValues(t);
+      oscA.frequency.setValueAtTime(oscA.frequency.value, t);
+      oscB.frequency.setValueAtTime(oscB.frequency.value, t);
+      oscA.frequency.exponentialRampToValueAtTime(base, t + 0.38);
+      oscB.frequency.exponentialRampToValueAtTime(base * 1.52, t + 0.38);
+    };
+
+    const sweepTimer = setInterval(sweep, 520);
+    const pulseTimer = setInterval(() => {
+      if (!alarmAudio) return;
+      const t = context.currentTime;
+      master.gain.cancelScheduledValues(t);
+      master.gain.setValueAtTime(master.gain.value, t);
+      master.gain.linearRampToValueAtTime(0.10, t + 0.10);
+      master.gain.linearRampToValueAtTime(0.20, t + 0.22);
+    }, 900);
+
+    // Safety auto-stop so a demo tap cannot leave the siren running indefinitely.
+    const autoStopTimer = setTimeout(() => stopEmergencyAlarm(), 10000);
+
+    alarmAudio = { context, master, oscA, oscB, sweepTimer, pulseTimer, autoStopTimer };
+    state.alarmActive = true;
+    updateAlarmButton();
+  } catch (error) {
+    console.warn('Alarm sound failed:', error);
+    state.alarmActive = false;
+    if (els.dpStatus) els.dpStatus.textContent = 'Alarm sound is not supported in this browser.';
+    updateAlarmButton();
+  }
+}
+
+function stopEmergencyAlarm(options = {}) {
+  if (!alarmAudio) {
+    state.alarmActive = false;
+    updateAlarmButton();
+    return;
+  }
+
+  const audio = alarmAudio;
+  alarmAudio = null;
+  state.alarmActive = false;
+
+  clearInterval(audio.sweepTimer);
+  clearInterval(audio.pulseTimer);
+  clearTimeout(audio.autoStopTimer);
+
+  try {
+    const t = audio.context.currentTime;
+    audio.master.gain.cancelScheduledValues(t);
+    audio.master.gain.setValueAtTime(Math.max(audio.master.gain.value, 0.0001), t);
+    audio.master.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+    audio.oscA.stop(t + 0.1);
+    audio.oscB.stop(t + 0.1);
+    setTimeout(() => audio.context.close().catch(() => {}), 160);
+  } catch (_) {
+    try { audio.context.close(); } catch (_) {}
+  }
+
+  if (!options.silent) updateAlarmButton();
+}
+
+function toggleEmergencyAlarm() {
+  if (state.alarmActive) stopEmergencyAlarm();
+  else startEmergencyAlarm();
+}
+
+function updateAlarmButton() {
+  const t = T[state.lang] || T.English;
+  if (els.alarmSectionLabel) els.alarmSectionLabel.textContent = t.alarm_section || 'Emergency Sound';
+  if (els.alarmNote) els.alarmNote.textContent = t.alarm_note || 'Generated browser sound. Use low volume for demo.';
+  if (!els.btnEmergencyAlarm) return;
+  els.btnEmergencyAlarm.textContent = state.alarmActive
+    ? (t.alarm_stop || 'Stop Emergency Alarm ■')
+    : (t.alarm_play || 'Play Emergency Alarm ▶');
+  els.btnEmergencyAlarm.classList.toggle('is-playing', !!state.alarmActive);
+  els.btnEmergencyAlarm.setAttribute('aria-pressed', state.alarmActive ? 'true' : 'false');
+}
+
 // ─── State setters ────────────────────────────────────────
 function setRisk(level) {
   state.liveStatus = null;
@@ -1565,9 +1851,18 @@ function setNight(on) {
 
 // ─── Two-mode demo data pipeline ──────────────────────────
 async function loadJson(url) {
-  const response = await fetch(url, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.json();
+  try {
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  } catch (error) {
+    const fallback = staticScenarioFallback(url);
+    if (fallback) {
+      console.warn(`Using embedded fallback data for ${url}:`, error.message);
+      return fallback;
+    }
+    throw error;
+  }
 }
 
 async function applyHistoricalScenario(scenario) {
@@ -1695,6 +1990,7 @@ function render() {
   $('btnNormal').textContent   = t.normal_mode;
   $('btnLowBatt').textContent  = t.low_battery_mode;
   $('btnConnLost').textContent = t.connection_lost_mode;
+  updateAlarmButton();
   $('btnCurrentOfficial').textContent = ui.controls.current;
   $('btnSimLow').textContent   = ui.controls.ready;
   $('btnSimMed').textContent   = ui.controls.prepare;
