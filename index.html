@@ -197,6 +197,13 @@
 
         <div class="dp-sep"></div>
 
+        <div class="dp-label">Remote Sync</div>
+        <div class="dp-sync-status" id="syncStatus">Sync off. Add ?controller=1 or ?display=1.</div>
+        <button type="button" class="dp-btn dp-btn-alarm" id="btnRemoteAlarmOn">Remote Alarm ON</button>
+        <button type="button" class="dp-btn" id="btnRemoteAlarmOff">Remote Alarm OFF</button>
+
+        <div class="dp-sep"></div>
+
         <div class="dp-label">Display Style</div>
         <label class="dp-night-lbl">
           <input type="checkbox" id="dpNightChk"> Night Mode
@@ -232,6 +239,8 @@
     </aside>
 
   </div><!-- /app-layout -->
+
+  <button class="sound-arm" id="soundArm" type="button" hidden>🔊 Enable remote alarm sound</button>
 
   <script src="app.js"></script>
 </body>

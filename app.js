@@ -1526,10 +1526,13 @@ const state = {
   updatedTime: "",
   lastKnownUpdate: "",
   alarmActive: false,
+  alarmSeq: 0,
 };
 
 // ─── DOM refs ─────────────────────────────────────────────
 let alarmAudio = null;
+let alarmContext = null;
+let remoteSoundArmed = false;
 
 const $  = id => document.getElementById(id);
 const els = {
@@ -1595,6 +1598,8 @@ const els = {
   alarmSectionLabel: $('alarmSectionLabel'),
   btnEmergencyAlarm: $('btnEmergencyAlarm'),
   alarmNote:  $('alarmNote'),
+  syncStatus: $('syncStatus'),
+  soundArm:   $('soundArm'),
   demoPanel:  $('demoPanel'),
   mobileMenuBtn: $('mobileMenuBtn'),
   drawerBackdrop: $('drawerBackdrop'),
@@ -1617,6 +1622,196 @@ function scenarioKey(record = state.dataRecord, displayState = state.displayStat
 function scenarioContent(record = state.dataRecord, displayState = state.displayState) {
   const key = scenarioKey(record, displayState);
   return contentBundle().scenarios[key] || UI_CONTENT.English.scenarios[key] || UI_CONTENT.English.scenarios.READY;
+}
+
+// ─── Remote controller/display sync ──────────────────────
+// Controller: ?controller=1&api=https://YOUR-BACKEND.vercel.app
+// Display:    ?display=1&api=https://YOUR-BACKEND.vercel.app
+const remoteParams = new URLSearchParams(window.location.search);
+const remoteApiFromUrl = remoteParams.get('api');
+if (remoteApiFromUrl) localStorage.setItem('floodDisplayApiBase', remoteApiFromUrl);
+
+const REMOTE_SYNC = {
+  isController: remoteParams.get('controller') === '1',
+  isDisplay: remoteParams.get('display') === '1',
+  apiBase: (remoteApiFromUrl || localStorage.getItem('floodDisplayApiBase') || '').replace(/\/$/, ''),
+  pollingMs: 1000,
+  pushTimer: null,
+  pollTimer: null,
+  applyingRemote: false,
+  lastRemoteUpdatedAt: '',
+};
+
+function remoteApiPath(path) {
+  return `${REMOTE_SYNC.apiBase}${path}`;
+}
+
+function remoteEndpointReady() {
+  return Boolean(REMOTE_SYNC.apiBase) || !location.hostname.endsWith('github.io');
+}
+
+function renderSyncStatus(message) {
+  if (!els.syncStatus) return;
+  const endpoint = REMOTE_SYNC.apiBase || 'same origin';
+  els.syncStatus.textContent = `${message} API: ${endpoint}`;
+}
+
+function setupRemoteSyncMode() {
+  document.body.classList.toggle('sync-display-mode', REMOTE_SYNC.isDisplay);
+  if (els.soundArm) {
+    els.soundArm.hidden = !REMOTE_SYNC.isDisplay;
+    els.soundArm.onclick = armRemoteAlarmSound;
+    updateRemoteSoundButton();
+  }
+
+  const alarmOn = $('btnRemoteAlarmOn');
+  const alarmOff = $('btnRemoteAlarmOff');
+  if (alarmOn) alarmOn.onclick = () => setRemoteAlarm(true);
+  if (alarmOff) alarmOff.onclick = () => setRemoteAlarm(false);
+
+  if (REMOTE_SYNC.isDisplay) {
+    renderSyncStatus('Display mode: polling every second.');
+    startRemotePolling();
+  } else if (REMOTE_SYNC.isController) {
+    renderSyncStatus('Controller mode: changes are pushed to the backend.');
+  } else {
+    renderSyncStatus('Sync off. Add ?controller=1 or ?display=1.');
+  }
+}
+
+function buildRemoteDisplayState() {
+  return {
+    lang: state.lang,
+    risk: state.risk,
+    mode: state.mode,
+    night: state.night,
+    lastRisk: state.lastRisk,
+    selectedDataMode: state.selectedDataMode,
+    displayState: state.displayState,
+    dataRecord: state.dataRecord,
+    liveStatus: state.liveStatus,
+    lastKnownUpdate: state.lastKnownUpdate,
+    alarmActive: state.alarmActive,
+    alarmSeq: state.alarmSeq,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function scheduleRemotePush(immediate = false) {
+  if (!REMOTE_SYNC.isController || REMOTE_SYNC.applyingRemote) return;
+  if (!remoteEndpointReady()) {
+    renderSyncStatus('Controller mode needs a backend API.');
+    return;
+  }
+  clearTimeout(REMOTE_SYNC.pushTimer);
+  REMOTE_SYNC.pushTimer = setTimeout(pushRemoteDisplayState, immediate ? 0 : 120);
+}
+
+async function pushRemoteDisplayState() {
+  try {
+    const response = await fetch(remoteApiPath('/api/display-state'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildRemoteDisplayState()),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    renderSyncStatus(`Controller synced at ${new Date().toLocaleTimeString()}.`);
+  } catch (error) {
+    renderSyncStatus(`Sync push failed: ${error.message}`);
+  }
+}
+
+function startRemotePolling() {
+  if (!REMOTE_SYNC.isDisplay || !remoteEndpointReady()) {
+    if (REMOTE_SYNC.isDisplay) renderSyncStatus('Display mode needs a backend API.');
+    return;
+  }
+  clearInterval(REMOTE_SYNC.pollTimer);
+  pullRemoteDisplayState();
+  REMOTE_SYNC.pollTimer = setInterval(pullRemoteDisplayState, REMOTE_SYNC.pollingMs);
+}
+
+async function pullRemoteDisplayState() {
+  try {
+    const response = await fetch(`${remoteApiPath('/api/display-state')}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    applyRemoteDisplayState(await response.json());
+    renderSyncStatus(`Display synced at ${new Date().toLocaleTimeString()}.`);
+  } catch (error) {
+    renderSyncStatus(`Sync pull failed: ${error.message}. Keeping the last screen.`);
+  }
+}
+
+function applyRemoteDisplayState(remoteState) {
+  if (!remoteState || typeof remoteState !== 'object') return;
+  if (remoteState.updatedAt && remoteState.updatedAt === REMOTE_SYNC.lastRemoteUpdatedAt) {
+    applyRemoteAlarm(remoteState);
+    return;
+  }
+
+  REMOTE_SYNC.applyingRemote = true;
+  REMOTE_SYNC.lastRemoteUpdatedAt = remoteState.updatedAt || '';
+  if (remoteState.lang && T[remoteState.lang]) state.lang = remoteState.lang;
+  if (remoteState.risk) state.risk = remoteState.risk;
+  if (remoteState.lastRisk) state.lastRisk = remoteState.lastRisk;
+  if (remoteState.mode) state.mode = remoteState.mode;
+  if (typeof remoteState.night === 'boolean') state.night = remoteState.night;
+  if (remoteState.selectedDataMode) state.selectedDataMode = remoteState.selectedDataMode;
+  if (remoteState.displayState) state.displayState = remoteState.displayState;
+  if (remoteState.dataRecord) state.dataRecord = remoteState.dataRecord;
+  if (remoteState.liveStatus) state.liveStatus = remoteState.liveStatus;
+  if (remoteState.lastKnownUpdate) state.lastKnownUpdate = remoteState.lastKnownUpdate;
+  if (Number.isFinite(Number(remoteState.alarmSeq))) state.alarmSeq = Number(remoteState.alarmSeq);
+
+  document.body.classList.toggle('night', state.night);
+  [els.nightChk, els.dpNightChk, els.ovNightChk].forEach(chk => {
+    if (chk) chk.checked = state.night;
+  });
+  render();
+  applyRemoteAlarm(remoteState);
+  REMOTE_SYNC.applyingRemote = false;
+}
+
+function setRemoteAlarm(active) {
+  state.alarmActive = Boolean(active);
+  if (active) state.alarmSeq = (Number(state.alarmSeq) || 0) + 1;
+  if (active) startEmergencyAlarm({ remote: true });
+  else stopEmergencyAlarm({ remote: true });
+  scheduleRemotePush(true);
+}
+
+function applyRemoteAlarm(remoteState) {
+  const active = Boolean(remoteState.alarmActive);
+  const remoteSeq = Number(remoteState.alarmSeq) || 0;
+  const sequenceChanged = remoteSeq !== Number(state.alarmSeq || 0);
+  state.alarmActive = active;
+  state.alarmSeq = remoteSeq;
+
+  if (active && (sequenceChanged || !alarmAudio)) startEmergencyAlarm({ remote: true });
+  if (!active && alarmAudio) stopEmergencyAlarm({ remote: true });
+  updateRemoteSoundButton();
+}
+
+async function armRemoteAlarmSound() {
+  try {
+    alarmContext = ensureAudioContext();
+    await alarmContext.resume();
+    remoteSoundArmed = true;
+    updateRemoteSoundButton();
+    if (state.alarmActive && !alarmAudio) startEmergencyAlarm({ remote: true });
+  } catch (error) {
+    console.warn('Remote alarm sound could not be enabled:', error);
+  }
+}
+
+function updateRemoteSoundButton() {
+  if (!els.soundArm) return;
+  els.soundArm.classList.toggle('ready', remoteSoundArmed);
+  els.soundArm.classList.toggle('alarm-active', state.alarmActive);
+  if (state.alarmActive && !remoteSoundArmed) els.soundArm.textContent = '🔊 Click to enable alarm sound';
+  else if (state.alarmActive) els.soundArm.textContent = '🚨 Remote alarm active';
+  else if (remoteSoundArmed) els.soundArm.textContent = '🔊 Remote alarm sound enabled';
+  else els.soundArm.textContent = '🔊 Enable remote alarm sound';
 }
 
 // ─── Init ─────────────────────────────────────────────────
@@ -1681,6 +1876,7 @@ function init() {
   window.addEventListener('orientationchange', () => setTimeout(rescale, 80));
   if (window.visualViewport) window.visualViewport.addEventListener('resize', rescale);
 
+  setupRemoteSyncMode();
   render();
   updateClock();
   refreshOfficialStatus();
@@ -1694,12 +1890,18 @@ function init() {
 function ensureAudioContext() {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) throw new Error('Web Audio API is not supported in this browser.');
-  const context = new AudioContextClass();
-  return context;
+  alarmContext = alarmContext || new AudioContextClass();
+  return alarmContext;
 }
 
-function startEmergencyAlarm() {
-  stopEmergencyAlarm({ silent: true });
+function startEmergencyAlarm(options = {}) {
+  if (options.remote && !remoteSoundArmed) {
+    state.alarmActive = true;
+    updateAlarmButton();
+    updateRemoteSoundButton();
+    return;
+  }
+  stopEmergencyAlarm({ silent: true, remote: true });
 
   try {
     const context = ensureAudioContext();
@@ -1760,12 +1962,16 @@ function startEmergencyAlarm() {
 
     alarmAudio = { context, master, oscA, oscB, sweepTimer, pulseTimer, autoStopTimer };
     state.alarmActive = true;
+    if (!options.remote) state.alarmSeq = (Number(state.alarmSeq) || 0) + 1;
     updateAlarmButton();
+    updateRemoteSoundButton();
+    if (!options.remote) scheduleRemotePush(true);
   } catch (error) {
     console.warn('Alarm sound failed:', error);
     state.alarmActive = false;
     if (els.dpStatus) els.dpStatus.textContent = 'Alarm sound is not supported in this browser.';
     updateAlarmButton();
+    updateRemoteSoundButton();
   }
 }
 
@@ -1773,6 +1979,8 @@ function stopEmergencyAlarm(options = {}) {
   if (!alarmAudio) {
     state.alarmActive = false;
     updateAlarmButton();
+    updateRemoteSoundButton();
+    if (!options.remote) scheduleRemotePush(true);
     return;
   }
 
@@ -1791,12 +1999,13 @@ function stopEmergencyAlarm(options = {}) {
     audio.master.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
     audio.oscA.stop(t + 0.1);
     audio.oscB.stop(t + 0.1);
-    setTimeout(() => audio.context.close().catch(() => {}), 160);
-  } catch (_) {
-    try { audio.context.close(); } catch (_) {}
-  }
+  } catch (_) {}
 
-  if (!options.silent) updateAlarmButton();
+  if (!options.silent) {
+    updateAlarmButton();
+    updateRemoteSoundButton();
+  }
+  if (!options.remote) scheduleRemotePush(true);
 }
 
 function toggleEmergencyAlarm() {
@@ -2007,6 +2216,7 @@ function render() {
     renderOverlay(t);
   }
   scheduleAdaptiveTypography();
+  scheduleRemotePush();
 }
 
 function renderNormal(t) {

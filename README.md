@@ -71,6 +71,8 @@ Local endpoints:
 
 ```text
 POST /api/analyse-risk
+GET  /api/display-state
+POST /api/display-state
 GET  /api/flood-status
 GET  /api/sources
 ```
@@ -144,7 +146,38 @@ APP_PUBLIC_URL=https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO-NAME/
 
 Then redeploy.
 
+## Remote display sync and alarm
+
+The same repository can run a two-computer demonstration. One browser acts as
+the controller and publishes the current language, scenario, display mode,
+night mode, and alarm state. A second browser polls the backend and mirrors the
+display.
+
+Controller:
+
+```text
+https://YOUR-GITHUB-PAGES-LINK/?controller=1&api=https://YOUR-VERCEL-BACKEND.vercel.app
+```
+
+Display:
+
+```text
+https://YOUR-GITHUB-PAGES-LINK/?display=1&api=https://YOUR-VERCEL-BACKEND.vercel.app
+```
+
+On the display computer, click **Enable remote alarm sound** once. Browsers
+require this user gesture before remote sound can play.
+
+The `/api/display-state` endpoint uses in-memory state for local testing. For a
+persistent serverless deployment, configure these Vercel environment variables:
+
+```text
+UPSTASH_REDIS_REST_URL=your Upstash REST URL
+UPSTASH_REDIS_REST_TOKEN=your Upstash REST token
+```
+
+Without Redis, a serverless instance may lose the latest state between requests.
+
 ## What to say in the demo
 
 > This prototype does not predict floods. It tests how official or cleaned flood-related data can be translated into simple, trusted and actionable guidance for Maribyrnong households.
-

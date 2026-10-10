@@ -2077,3 +2077,47 @@ body.drawer-open { overflow: hidden; }
   color: #a0a0ff;
 }
 .ai-apply-btn:hover { background: #22224a; }
+
+/* Remote controller/display demo */
+.dp-sync-status {
+  font-size: 11px;
+  line-height: 1.35;
+  border: 1px dashed currentColor;
+  padding: 7px 8px;
+  margin: 6px 0 8px;
+  opacity: 0.9;
+  background: rgba(255,255,255,0.04);
+}
+
+.sound-arm {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  padding: 10px 14px;
+  border: 2px solid #1c1918;
+  border-radius: 999px;
+  background: #f8f5ea;
+  color: #1c1918;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  cursor: pointer;
+}
+
+.sound-arm.ready { opacity: 0.72; }
+.sound-arm.alarm-active { animation: soundPulse 0.9s infinite; }
+
+@keyframes soundPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+body.sync-display-mode .demo-panel,
+body.sync-display-mode .mobile-menu-btn,
+body.sync-display-mode .drawer-backdrop {
+  display: none !important;
+}
+
+body.sync-display-mode .app-layout { grid-template-columns: 1fr; }

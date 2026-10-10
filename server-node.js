@@ -15,6 +15,53 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 
+const DISPLAY_STATE_KEY = 'display:state';
+let latestDisplayState = {
+  lang: 'English',
+  risk: 'MEDIUM',
+  mode: 'normal',
+  night: false,
+  selectedDataMode: 'historical',
+  displayState: 'PREPARE',
+  alarmActive: false,
+  alarmSeq: 0,
+  updatedAt: new Date().toISOString(),
+};
+
+async function readDisplayState() {
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!redisUrl || !redisToken) return latestDisplayState;
+
+  const response = await fetch(`${redisUrl.replace(/\/$/, '')}/get/${encodeURIComponent(DISPLAY_STATE_KEY)}`, {
+    headers: { Authorization: `Bearer ${redisToken}` },
+    cache: 'no-store',
+  });
+  if (!response.ok) throw new Error(`Redis GET HTTP ${response.status}`);
+  const body = await response.json();
+  return body.result ? JSON.parse(body.result) : latestDisplayState;
+}
+
+async function writeDisplayState(nextState) {
+  latestDisplayState = {
+    ...latestDisplayState,
+    ...nextState,
+    updatedAt: nextState.updatedAt || new Date().toISOString(),
+  };
+
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (redisUrl && redisToken) {
+    const value = encodeURIComponent(JSON.stringify(latestDisplayState));
+    const response = await fetch(`${redisUrl.replace(/\/$/, '')}/set/${encodeURIComponent(DISPLAY_STATE_KEY)}/${value}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${redisToken}` },
+    });
+    if (!response.ok) throw new Error(`Redis SET HTTP ${response.status}`);
+  }
+  return latestDisplayState;
+}
+
 app.use(express.json());
 
 // CORS for testing GitHub Pages frontend against local/deployed backend.
@@ -34,6 +81,24 @@ app.use(express.static(path.join(__dirname)));
 app.post('/api/analyse-risk', async (req, res) => {
   const result = await analyseRisk(req.body || {});
   res.json(result);
+});
+
+app.get('/api/display-state', async (req, res) => {
+  try {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json(await readDisplayState());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/display-state', async (req, res) => {
+  try {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ ok: true, state: await writeDisplayState(req.body || {}) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Local convenience endpoint only. GitHub Pages frontend now reads the JSON file directly.
@@ -61,6 +126,8 @@ app.listen(PORT, () => {
   console.log(`OpenRouter model: ${process.env.OPENROUTER_MODEL || 'mistralai/mistral-7b-instruct:free'}`);
   console.log('Endpoints:');
   console.log('  POST /api/analyse-risk');
+  console.log('  GET  /api/display-state');
+  console.log('  POST /api/display-state');
   console.log('  GET  /api/flood-status');
   console.log('  GET  /api/sources\n');
 });
